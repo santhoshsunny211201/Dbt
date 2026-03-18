@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: customer
+    description: "Bronze layer customer dimension model containing customer information"
+    columns:
+      - name: customer_sk
+        tests:
+          - not_null
+          - unique
+      - name: customer_code
+        tests:
+          - not_null
+    
+  - name: date
+    description: "Bronze layer date dimension model containing date-related attributes"
+    columns:
+      - name: date
+        tests:
+          - not_null
+          - not_in_future
+
+  - name: product
+    description: "Bronze layer product dimension model containing product details"
+    config:
+      materialized: view
+    
+  - name: returns
+    description: "Bronze layer returns fact model containing return transaction data"
+    
+  - name: sales
+    description: "Bronze layer sales fact model containing sales transaction data"
+    columns:
+      - name: net_amount
+        tests:
+          - non_negative
+      - name: sales_id
+        tests:
+          - not_null
+          - unique
+      - name: customer_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('customer')
+              field: customer_sk
+      - name: product_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('product')
+              field: product_sk
+    
+  - name: store
+    description: "Bronze layer store dimension model containing store information"
+    columns:
+      - name: store_sk
+        tests:
+          - not_null
+          - unique
+      - name: country
+        tests:
+          - accepted_values:
+              values: ['USA', 'Canada1', 'Mexico']
+              severity: warn
